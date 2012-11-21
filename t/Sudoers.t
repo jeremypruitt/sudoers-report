@@ -5,7 +5,7 @@ use warnings;
 use Test::More 'no_plan';
 use YAML::Tiny;
 
-use lib '.';
+use lib './lib';
 
 my $class = 'Sudoers';
 
