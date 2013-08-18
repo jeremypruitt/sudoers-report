@@ -1,4 +1,4 @@
-sudoers-report -- Parse a sudoers file for user aliases and specs relevant to a specific hostname
+sudoers-report
 ====================================
 
 ## DESCRIPTION
