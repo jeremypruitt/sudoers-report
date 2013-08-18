@@ -25,12 +25,6 @@ $ git clone https://github.com/jeremypruitt/sudoers-report.git
 $ cd sudoers-report
 ```
 
-If you're installing from source, you can use [Bundler][bundler] to pick up all the
-gems:
-
-```bash
-$ bundle install
-```
 
 ## RUNNING
 
