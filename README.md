@@ -11,9 +11,10 @@ to tell who has access to do what on a given server.
 
 ## SYSTEM REQUIREMENTS
 
-- Perl 5.8+
 - Unix like operating system (OS X, FreeBSD, RHEL, Ubuntu, etc)
-- Never tested on Microsoft Windows
+- Perl 5.8+
+- Hash::Merge
+- YAML::Tiny
 
 
 ## INSTALLATION
