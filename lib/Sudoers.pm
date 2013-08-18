@@ -1,13 +1,13 @@
-#! /usr/local/bin/perl
+#!/bin/env perl
 
 package Sudoers;
 
-our $VERSION = 'v0.0.2';
+our $VERSION = 'v0.0.3';
 
 use utf8;
 use strict;
 use warnings;
-use YAML::Tiny;
+use YAML::Tiny 'Dump';
 use Hash::Merge 'merge';
 use English qw( -no_match_vars );
 use Getopt::Long;
@@ -61,10 +61,20 @@ sub process_line {
   } elsif ($line =~ /^\s*\S+\s+\S+\s*=\s*\S+/) {
     $sudoers->{'Spec'} = process_sudo_spec($line,$sudoers->{'Spec'});
   } else {
-    print "LINE: ${line}\n";
+    print "UNKNOWN LINE: ${line}\n";
   }
 
   return $sudoers
+}
+
+sub combine_backslash_newlines {
+    my ($line,$fh) = @_;
+    if ($line =~ s/\\\s*$//) {
+        $line .= <$fh>;
+        $line =~ s/\s+/ /g;
+       ($line, $fh) = combine_backslash_newlines($line,$fh);
+    }
+    return ($line, $fh);
 }
 
 sub build_sudoers_hash_from_file {
@@ -75,11 +85,11 @@ sub build_sudoers_hash_from_file {
   my $sudoers;
 
   while (my $line = <$sudoers_fh>) {
+    next unless $line;
     next if $line =~ /^\s*(#|$)/;
 
-    if ($line =~ s/\\\s*$//) {
-        $line .= <$sudoers_fh>;
-        redo unless eof($sudoers_fh);
+    if ($line =~ /\\\s*$/) {
+      ($line, $sudoers_fh) = combine_backslash_newlines($line,$sudoers_fh);
     }
 
     $sudoers = process_line($line,$sudoers);
@@ -141,21 +151,42 @@ sub query_hostname {
   return $result;
 }
 
+sub expand_user_alias {
+  my ($username,$sudoers) = @_;
+  my $foo;
+  my $user_alias = $sudoers->{'User_Alias'}{$username};
+  foreach my $username (@{$user_alias}) {
+    if ($username =~ /^[A-Z0-9_]+$/) {
+      $foo->{$username} = expand_user_alias($username,$sudoers);
+    } else {
+      $foo->{$username} = undef;
+    }
+  }
+  return $foo;
+}
+
 sub host_report {
   my ($hostname,$sudoers) = @_;
+  my $relevant_user_aliases = { };
 
   my $user_specs = query_hostname($hostname,$sudoers);
-  my $relevant_user_aliases = { };
   my @user_alias_names = keys(%{$user_specs});
+
   foreach my $user_alias_name (@user_alias_names) {
-    my $user_alias = $sudoers->{'User_Alias'}{$user_alias_name};
-    foreach my $username (@{$user_alias}) {
+    my @user_aliases = @{ $sudoers->{'User_Alias'}{$user_alias_name} };
+
+    # Convert array into seen hash
+    my %user_alias;
+    @user_alias{@user_aliases} = () x @user_aliases;
+    $relevant_user_aliases->{$user_alias_name} = \%user_alias;
+
+    # Loop over usernames...
+    foreach my $username (@user_aliases) {
+      # ...and expand as a user alias if the username is upcase.
       if ($username =~ /^[A-Z0-9_]+$/) {
-        my $inner_user_alias = $sudoers->{'User_Alias'}{$username};
-        $relevant_user_aliases->{$username} = $inner_user_alias;
+        $relevant_user_aliases->{$user_alias_name}->{$username} = expand_user_alias($username,$sudoers);
       }
     }
-    $relevant_user_aliases->{$user_alias_name} = $user_alias;
   }
 
   return {
@@ -172,6 +203,7 @@ sub get_host_alias_names_for_hostname {
 
   foreach my $host_alias_name ( keys(%host_alias) ) {
     my @host_aliases = @{ $host_alias{$host_alias_name} };
+    my $host_aliases_string = join(',',@host_aliases);
     if (grep {$_ eq $hostname} @host_aliases) {
       push(@found_host_aliases, $host_alias_name);
     }
