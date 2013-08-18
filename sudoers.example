@@ -20,5 +20,7 @@ BACKUP_ADMINS   ENGINEERING=(ALL) /bin/backup
 root            ALL=(ALL) ALL
 
 %wheel          WORKSTATIONS=(ALL) ALL
-%root           SERVERS= (ALL) ALL: \
-                WORKSTATIONS=(ALL) ALL 
+%root           SERVERS=(ALL) ALL:\
+                LAPTOPS=(ALL) ALL: \ 
+                WORKSTATIONS=(ALL) ALL
+
