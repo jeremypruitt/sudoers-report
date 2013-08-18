@@ -34,7 +34,7 @@ To get help on the command line utility, you can run it like so:
 $ bin/sudoers-report --help
 ```
 
-This will parse s sudoers file for a given hostname and return all
+This will parse a sudoers file for a given hostname and return all
 relevant user aliases and specs:
 
 ```bash
