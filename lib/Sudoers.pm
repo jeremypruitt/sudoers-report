@@ -26,7 +26,7 @@ sub process_sudo_spec {
 
   $line =~ /\s*(\S+)\s+\S+\s*=\s*.+/;
   my $user = $1;
-  foreach my $foo ($line =~ m/\S+\s*=\s*[^:]+[$:]?/g) {
+  foreach my $foo ($line =~ m/\S+\s*=\s*(?:\(\S+\) NOPASSWD: )?(?:NOPASSWD: )?[^:]+[$:]?/g) {
     $foo =~ /\s*(\S+)\s*=\s*(.+)\s*(?::|$)/;
     my $host = $1;
     my $cmnd = $2;
@@ -98,23 +98,6 @@ sub build_sudoers_hash_from_file {
   return $sudoers;
 }
 
-sub host_alias_report_for {
-  my ($host_alias,$sudoers) = @_;
-
-  my $report;
-  my %spec = %{ $sudoers->{'Spec'} };
-
-  foreach my $user_alias ( keys(%spec) ) {
-    if ($spec{$user_alias}{$host_alias}) {
-      my %cmnd_alias_tuple = %{ $spec{$user_alias}{$host_alias}{'Cmnd_Alias'} };
-      my @cmnd_alias = keys(%cmnd_alias_tuple);
-      $report->{$user_alias} = $cmnd_alias[0];
-    }
-  };
-
-  return $report;
-}
-
 sub process_host_alias{
   my ($host_alias,$spec_ref) = @_;
 
@@ -138,14 +121,20 @@ sub query_hostname {
   my @results;
   my %spec = %{ $sudoers->{'Spec'} };
 
-  my $host_aliases = get_host_alias_names_for_hostname($hostname,$sudoers);
-  foreach my $host_alias_name (@$host_aliases) {
+  my @host_aliases;
+  if ($hostname eq 'ALL') {
+    push(@host_aliases,'ALL');
+  } else {
+    @host_aliases = @{ get_host_alias_names_for_hostname($hostname,$sudoers) };
+  }
+
+  foreach my $host_alias_name (@host_aliases) {
     my $processed_host_alias = process_host_alias($host_alias_name,$sudoers->{'Spec'});
     if ($processed_host_alias && $result) {
       $result = merge($processed_host_alias,$result);
     } elsif ($processed_host_alias) {
       $result = $processed_host_alias;
-    };
+    }
   }
 
   return $result;
@@ -188,9 +177,10 @@ sub host_report {
       }
     }
   }
+  my $all_user_specs = merge($user_specs,query_hostname('ALL',$sudoers));
 
   return {
-    'User Specs'   => $user_specs,
+    'User Specs'   => $all_user_specs,
     'User Aliases' => $relevant_user_aliases,
   };
 }

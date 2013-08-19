@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More 'no_plan';
+use Hash::Merge 'merge';
 use YAML::Tiny;
 
 use lib './lib';
@@ -112,7 +113,8 @@ is_deeply($actual_host_alias_result, $expected_host_alias_result, "Got host repo
 ## host_report_for hostname
 ##
 $hostname = 'desktop2';
-my $expected_query_hostname_result = {
+my $expected_query_result = {
+  'root'  => '(ALL) ALL',
   '%root' => '(ALL) ALL',
   '%wheel' => '(ALL) ALL',
   'ADMINS' => [
@@ -125,8 +127,10 @@ my $expected_query_hostname_result = {
   ],
 };
 my $actual_query_hostname_result = Sudoers::query_hostname($hostname,$sudoers);
+my $actual_query_all_result = Sudoers::query_hostname('ALL',$sudoers);
+my $actual_query_result = merge($actual_query_all_result,$actual_query_hostname_result);
 is_deeply(
-  $actual_query_hostname_result,
-  $expected_query_hostname_result,
+  $actual_query_result,
+  $expected_query_result,
   "Got host report for hostname: $hostname"
-) or diag explain $actual_query_hostname_result;
+) or diag explain $actual_query_result;
