@@ -15,6 +15,8 @@ use Pod::Usage qw( pod2usage );
 
 Hash::Merge::set_behavior( 'RETAINMENT_PRECEDENT' );
 
+my $DEBUG = 0;
+
 sub trim {
     (my $s = $_[0]) =~ s/^\s+|\s+$//g;
     return $s;        
@@ -61,7 +63,7 @@ sub process_line {
   } elsif ($line =~ /^\s*\S+\s+\S+\s*=\s*\S+/) {
     $sudoers->{'Spec'} = process_sudo_spec($line,$sudoers->{'Spec'});
   } else {
-    print "UNKNOWN LINE: ${line}\n";
+    print "UNKNOWN LINE: ${line}\n" if $DEBUG;
   }
 
   return $sudoers
