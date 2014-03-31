@@ -160,11 +160,13 @@ sub host_report {
   my ($hostname,$sudoers) = @_;
   my $relevant_user_aliases = { };
 
-  my $user_specs = query_hostname($hostname,$sudoers);
+  my $user_specs = merge(query_hostname($hostname,$sudoers) || {},query_hostname('ALL',$sudoers) || {});
   my @user_alias_names = keys(%{$user_specs});
 
   foreach my $user_alias_name (@user_alias_names) {
-    my @user_aliases = @{ $sudoers->{'User_Alias'}{$user_alias_name} };
+    my $user_alias_name_ref = $sudoers->{'User_Alias'}{$user_alias_name};
+    next unless defined $user_alias_name_ref;
+    my @user_aliases = @{ $user_alias_name_ref };
 
     # Convert array into seen hash
     my %user_alias;
@@ -179,10 +181,9 @@ sub host_report {
       }
     }
   }
-  my $all_user_specs = merge($user_specs,query_hostname('ALL',$sudoers));
 
   return {
-    'User Specs'   => $all_user_specs,
+    'User Specs'   => $user_specs,
     'User Aliases' => $relevant_user_aliases,
   };
 }
@@ -191,6 +192,7 @@ sub get_host_alias_names_for_hostname {
   my ($hostname,$sudoers) = @_;
   my @found_host_aliases;
 
+  $sudoers->{'Host_Alias'} ||= { 'ALL' => [''] };
   my %host_alias = %{ $sudoers->{'Host_Alias'} };
 
   foreach my $host_alias_name ( keys(%host_alias) ) {
