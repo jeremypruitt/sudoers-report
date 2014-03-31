@@ -2,7 +2,7 @@
 
 package Sudoers;
 
-our $VERSION = 'v0.0.3';
+our $VERSION = 'v0.0.4';
 
 use utf8;
 use strict;
