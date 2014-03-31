@@ -1,0 +1,22 @@
+Cmnd_Alias      OPCMDS=/bin/ls,/bin/cp
+Cmnd_Alias      ROOTSU=/usr/bin/su "",/usr/bin/su -,/bin/su "",/bin/su -
+Cmnd_Alias      SHELLS=/bin/sh,/bin/csh,/bin/tcsh,/usr/local/bin/tcsh,/bin/bash,/usr/local/bin/bash,/bin/zsh,/usr/local/bin/zsh,/bin/ksh,/usr/local/bin/ksh
+
+User_Alias      ADMINS=juser,toor
+User_Alias      BACKUP_ADMINS=alice,bob
+
+Runas_Alias     OP=root,operator
+
+
+ADMINS          ALL=(ALL) ALL
+ADMINS          ALL=(ALL) /bin/ls
+BACKUP_ADMINS   ALL=(ALL) /bin/backup
+BACKUP_ADMINS   ALL=(ALL) /bin/backup
+
+root            ALL=(ALL) ALL
+
+%wheel          ALL=(ALL) ALL
+%root           ALL=(ALL) ALL:\
+                ALL=(ALL) ALL: \ 
+                ALL=(ALL) ALL
+

@@ -91,8 +91,15 @@ my @expected_host_aliases = [
   'WORKSTATIONS',
 ];
 my $actual_host_aliases = Sudoers::get_host_alias_names_for_hostname($hostname,$sudoers);
+can_ok( $class, 'main' );
 is_deeply($actual_host_aliases, @expected_host_aliases, "Got host aliases for $hostname")
   or diag explain $actual_host_aliases;
+
+##
+## What if a Host Alias doesn't exist?
+##
+my $sudoers_without_host_alias = Sudoers::build_sudoers_hash_from_file('./sudoers.example_without_host_alias');
+Sudoers::get_host_alias_names_for_hostname($hostname,$sudoers_without_host_alias);
 
 
 ##
