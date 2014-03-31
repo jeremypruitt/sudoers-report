@@ -98,8 +98,7 @@ is_deeply($actual_host_aliases, @expected_host_aliases, "Got host aliases for $h
 ## What if a Host Alias doesn't exist?
 ##
 my $sudoers_without_host_alias = Sudoers::build_sudoers_hash_from_file('./sudoers.example_without_host_alias');
-Sudoers::get_host_alias_names_for_hostname($hostname,$sudoers_without_host_alias);
-
+ok( Sudoers::get_host_alias_names_for_hostname($hostname,$sudoers_without_host_alias), "Can load a sudoers file with no Host Alias directives" );
 
 ##
 ## process_host_report for host alias
